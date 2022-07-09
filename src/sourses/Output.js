@@ -1,17 +1,22 @@
 export class Output {
+    
     constructor() {
-        this.value = '';
         this.cursor = '|';
+
         this.output = document.querySelector(".output");
+
         this.array;
+
         this.cursorPos = 0;
     }
+
     mooveCursorToRigth() {
         if (this.array.length === this.cursorPos) {
             return
         }
             this.cursorPos += 1;
     }
+
     mooveCursorToLeft() {
         if (this.cursorPos <= 0) {
             return
@@ -59,6 +64,7 @@ export class Output {
             this.cursorPos = this.cursorPos - array[array.length - 2].length;
         }
     }
+
     mooveCursorDown() {
         if (this.array === undefined) {
             return;
@@ -100,6 +106,7 @@ export class Output {
             this.cursorPos = this.cursorPos + array[0].length;
         }
     }
+
     addSymbol(symbol) {
         if (typeof(symbol) !== 'string') {
             return;
@@ -110,12 +117,14 @@ export class Output {
         this.array.splice(this.cursorPos, 0, symbol);
         this.mooveCursorToRigth();
     }
+
     deleteSymbol() {
         if (this.array.length > 0) {
             this.array = this.array.filter((item, index) => index !== this.cursorPos - 1);
         }
       this.mooveCursorToLeft();
     }
+
     getSymbols() {
         if (this.array === undefined) {
             return this.cursor;
@@ -127,13 +136,12 @@ export class Output {
             if (index === this.cursorPos) {
             return item = this.cursor + item;
             } else {
-            return item = item;
-            }
+            return item;            }
         }).join('');
         }
     }
+
     showSymbols() {
-        let value = this.getSymbols();
-        this.output.innerHTML = value;
+        this.output.innerHTML = this.getSymbols();
     }
 };

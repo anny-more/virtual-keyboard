@@ -1,10 +1,7 @@
 import { KeyBoardKey } from "./KeyBoardKey";
 import { string } from "../index";
-//import { keyBoard } from "../index";
 
-const keys = {};
-
-const keyboardValue__En = [
+const KEYBOARD_VALUE = [
     ["Backquote", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "Digit0", "Minus", "Equal", "Backspace"],
     ["Tab", "KeyQ", "KeyW", "KeyE", "KeyR", "KeyT", "KeyY", "KeyU", "KeyI", "KeyO", "KeyP", "BracketLeft", "BracketRight", "Backslash"],
     ["CapsLock", "KeyA", "KeyS", "KeyD", "KeyF", "KeyG", "KeyH", "KeyJ", "KeyK", "KeyL", "Semicolon", "Quote", "Enter"],
@@ -13,176 +10,209 @@ const keyboardValue__En = [
 ];
 
 export class KeyBoard {
+
     constructor() {
         this.node = document.createElement('div');
-        this.class = this.node.classList.add('virtual_keyboard_container__main');
+
+        this.keys = {};
+
+        this.buttons = {};
+
         this.isUpperCase = false;
+
         this.isShiftActive = false;
+
         this.isEn = true;
     }
-    allKeys() {
-        return document.querySelectorAll(".virtual_keyboard_button");
-    };
+
     create() {
-        this.node.innerHTML = keyboardValue__En.reduce(
-            function(acc, item, index) {
-                return acc = acc + '<div class="virtual_keyboard_container">' + 
-                item.reduce(
-                    function(acc, item, index) {
-                        if (!keys.hasOwnProperty(item)) {
-                            keys[item] = new KeyBoardKey(item);
-                        }
-                        return acc = acc + keys[item].createButton();
-                    }, ''
-                ) + '</div>'
-            }, ''
-        ); 
+        this.node.classList.add('virtual_keyboard_container__main');
+        this.node.innerHTML = '';
+        for (let i = 0; i < KEYBOARD_VALUE.length; i += 1) {
+            let elem = document.createElement('div');
+            elem.className = 'virtual_keyboard_container';
+            for (let j = 0; j < KEYBOARD_VALUE[i].length; j += 1) {
+                let item = KEYBOARD_VALUE[i][j];
+                if (!this.keys.hasOwnProperty(item)) {
+                    this.keys[item] = new KeyBoardKey(item);
+                }
+                this.buttons[item] = this.keys[item].createButton();
+
+                elem.append(this.buttons[item]);
+                this.buttons[item].onclick = () => {
+                    this.mouseEventHandler(item);}
+            }
+            this.node.append(elem);
+        }
         document.body.append(this.node);
         if (this.isUpperCase) {
-            const caps = document.querySelector('.virtual_keyboard_button__dot');
-            caps.classList.add('virtual_keyboard_button__dot-active');
+            this.buttons["CapsLock"].classList.add('virtual_keyboard_button__dot-active');
         };
     };
+
     switchUpperCase() {
         this.isUpperCase = !this.isUpperCase;
         this.create();
-        const caps = document.querySelector('.virtual_keyboard_button__dot');
+        const caps = this.buttons["CapsLock"];
         if (this.isUpperCase) {
             caps.classList.add('virtual_keyboard_button__dot-active');
         } 
     };
+
     useShift(value) {
         this.isShiftActive = !this.isShiftActive;
         if (this.isShiftActive) {
             this.isUpperCase = !this.isUpperCase;
             this.create();
-            const shift = document.querySelector('.virtual_keyboard_button[data-code="'+value+'"]');
-            shift.classList.add('virtual_keyboard_button_active');
+            this.buttons[value].classList.add('virtual_keyboard_button_active');
         } else {
             this.isUpperCase = !this.isUpperCase;
             this.create();
         }
     }
+
     switchLang() {
         this.isEn = !this.isEn;
         this.create();
-        document.querySelector('.virtual_keyboard_button[data-code="'+"ShiftLeft"+'"]').classList.add('virtual_keyboard_button_active');
-        document.querySelector('.virtual_keyboard_button[data-code="'+"AltLeft"+'"]').classList.add('virtual_keyboard_button_active');
-        setTimeout(() => {
-            document.querySelector('.virtual_keyboard_button[data-code="'+"ShiftLeft"+'"]').classList.remove('virtual_keyboard_button_active');
-            document.querySelector('.virtual_keyboard_button[data-code="'+"AltLeft"+'"]').classList.remove('virtual_keyboard_button_active');
-        }, 600); 
     }
+
     showActiveKey(e) {
-        this.allKeys().forEach(item => {
-            if (item.dataset.code === e.code) {
-                item.classList.add('virtual_keyboard_button_active');
-                document.addEventListener('keyup', (event) => {
-                    if (item.dataset.code === event.code) {
-                    item.classList.remove('virtual_keyboard_button_active');
-                    }
-                });
-            }
+        this.buttons[e.code].classList.add('virtual_keyboard_button_active');
+        document.addEventListener('keyup', (event) => {
+            this.buttons[event.code].classList.remove('virtual_keyboard_button_active');
         });
     }
 
-    mouseEventHandler(event) {
-        if (event.target.tagName !== 'BUTTON') {
-            return false;
-        }
-        const keyCode = event.target.dataset.code;
-        let symbol = keys[keyCode].case(keyCode);
+    mouseEventHandler(keyCode) {
+        let symbol = this.keys[keyCode].case();
 
-        if (['Ctrl', 'Win'].includes(symbol)) {
-            symbol = '';
-        } else if (symbol === 'Alt') {
-            if (this.isShiftActive) {
-                this.switchLang();
-            }
-            symbol = '';
-        } else if (symbol === 'Tab') {
-            symbol = '\t';
-        } else if (symbol === 'Caps') {
-            symbol = '';
-            this.switchUpperCase();
-        } else if (symbol === 'Enter') {
-            symbol = '\n';
-        } else if (symbol === 'Backspace') {
-            symbol = '';
-            string.deleteSymbol();
-        } else if (symbol === 'Rigth') {
-            symbol = '';
-            string.mooveCursorToRigth();
-        } else if (symbol === 'Left') {
-            symbol = '';
-            string.mooveCursorToLeft();
-        } else if (symbol === 'Shift') {
-            symbol = '';
-            this.useShift(keyCode);
-            return;
-        } else if (symbol === 'Up') {
-            symbol = '';
-            string.mooveCursorUp();
-        } else if (symbol === 'Down') {
-            symbol = '';
-            string.mooveCursorDown();
-        };
-
-        if (symbol !== '') {
-            symbol = this.isUpperCase ? symbol.toUpperCase() : symbol;
-            string.addSymbol(symbol);
-        }
+        switch(symbol) {
+            case 'Ctrl':
+            case 'Win':
+                break;
+            case 'Alt':
+                if (this.isShiftActive) {
+                    this.switchLang();
+                };
+                break;
+            case 'Caps':
+                this.switchUpperCase();
+                break;
+            case 'Backspace':
+                string.deleteSymbol();
+                break;
+            case 'Rigth':
+                string.mooveCursorToRigth();
+                break;
+            case 'Left':
+                string.mooveCursorToLeft();
+                break;
+            case 'Up':
+                string.mooveCursorUp();
+                break;
+            case 'Down':
+                string.mooveCursorDown();
+                break;
+            case 'Shift':
+                this.useShift(keyCode);
+                break;
+            case 'Tab':
+                symbol = '\t';
+                string.addSymbol(symbol);
+                break;
+            case 'Enter':
+                symbol = '\n';
+                string.addSymbol(symbol);
+                break;
+            default:
+                symbol = this.isUpperCase ? symbol.toUpperCase() : symbol;
+                string.addSymbol(symbol);
+                if (this.isShiftActive) {
+                    this.useShift(keyCode);
+                };
+                break;
+          }
         string.showSymbols();
-        if (this.isShiftActive) {
-            this.useShift(keyCode);
-        };
-        event.stopPropagation();
     };
+
     keyEventHandler(event) {
         if (event.code === 'AltLeft') {
-            document.querySelector('.virtual_keyboard_button[data-code="'+"AltLeft"+'"]').classList.add('virtual_keyboard_button_active');
+            this.buttons['AltLeft'].classList.add('virtual_keyboard_button_active');
         };
         this.showActiveKey(event);
-        let symbol = keys[event.code].case(event.code);
-
-        if (event.code === 'CapsLock') {
-            this.switchUpperCase();
-        }
+        
         if ((event.code === 'ShiftLeft' && event.altKey) || (event.code === 'AltLeft' && event.shiftKey)) {
             this.switchLang();
+            this.buttons['ShiftLeft'].classList.add('virtual_keyboard_button_active');
+            this.buttons['AltLeft'].classList.add('virtual_keyboard_button_active');
+        setTimeout(() => {
+            this.buttons['ShiftLeft'].classList.remove('virtual_keyboard_button_active');
+            this.buttons['AltLeft'].classList.remove('virtual_keyboard_button_active');
+        }, 600);
+            return;
+        };
+        if ((event.code === 'ShiftRigth' && event.altKey) || (event.code === 'AltRigth' && event.shiftKey)) {
+            this.switchLang();
+            this.buttons['ShiftRigth'].classList.add('virtual_keyboard_button_active');
+            this.buttons['AltRigth'].classList.add('virtual_keyboard_button_active');
+        setTimeout(() => {
+            this.buttons['ShiftRigth'].classList.remove('virtual_keyboard_button_active');
+            this.buttons['AltRigth'].classList.remove('virtual_keyboard_button_active');
+        }, 600);
+            return;
         };
         if (this.isShiftActive) {
             this.useShift(event.code);
+            return;
         }
-        
-        if (['Ctrl', 'Win', 'Alt', 'Shift', 'Caps'].includes(symbol)) {
-            symbol = '';
-        } else if (symbol === 'Tab') {
-            symbol = '\t';
-        } else if (symbol === 'Enter') {
-            symbol = '\n';
-        } else if (symbol === 'Backspace') {
-            symbol = '';
-            string.deleteSymbol()
-        } else if (symbol === 'Rigth') {
-            symbol = '';
-            string.mooveCursorToRigth();
-        } else if (symbol === 'Left') {
-            symbol = '';
-            string.mooveCursorToLeft();
-        } else if (symbol === 'Up') {
-            symbol = '';
-            string.mooveCursorUp();
-        } else if (symbol === 'Down') {
-            symbol = '';
-            string.mooveCursorDown();
-        };
-        
-        if (symbol !== '') {
-            symbol = this.isUpperCase ? symbol.toUpperCase() : symbol;
-            string.addSymbol(symbol);
-        }
+        let symbol = this.keys[event.code].case(event.code);
+        switch(symbol) {
+            case 'Ctrl':
+            case 'Win':
+                break;
+            case 'Alt':
+                if (event.shiftKey) {
+                    this.switchLang();
+                };
+                break;
+            case 'Caps':
+                this.switchUpperCase();
+                this.showActiveKey(event);
+                break;
+            case 'Backspace':
+                string.deleteSymbol();
+                break;
+            case 'Rigth':
+                string.mooveCursorToRigth();
+                break;
+            case 'Left':
+                string.mooveCursorToLeft();
+                break;
+            case 'Up':
+                string.mooveCursorUp();
+                break;
+            case 'Down':
+                string.mooveCursorDown();
+                break;
+            case 'Shift':
+                this.useShift(event.code);
+                break;
+            case 'Tab':
+                symbol = '\t';
+                string.addSymbol(symbol);
+                break;
+            case 'Enter':
+                symbol = '\n';
+                string.addSymbol(symbol);
+                break;
+            default:
+                symbol = this.isUpperCase ? symbol.toUpperCase() : symbol;
+                string.addSymbol(symbol);
+                if (this.isShiftActive) {
+                    this.useShift(keyCode);
+                };
+                break;
+          }
         string.showSymbols();
-        
     }
 };

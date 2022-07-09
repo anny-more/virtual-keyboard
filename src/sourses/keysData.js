@@ -1,4 +1,4 @@
-export const keyData = {
+export const KEY_DATA = {
     'Backquote': 
     {
         'className': 'virtual_keyboard_button virtual_keyboard_button__fn',

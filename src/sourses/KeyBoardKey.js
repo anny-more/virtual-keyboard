@@ -1,22 +1,32 @@
-import { keyData } from "./keysData";
+import { KEY_DATA } from "./keysData";
 import { keyBoard } from "../index";
 
 export class KeyBoardKey {
+
     constructor(value) {
         this.keyCode = value;
-        this.class = keyData[value].className;
+
+        this.class = KEY_DATA[this.keyCode].className;
+
         this.isEn = keyBoard.isEn;
     }
 
     createButton() {
-        return `<button class="${this.class}" data-code="${this.keyCode}" type="button">${this.case(this.keyCode)}</button>`
+        const element = document.createElement('button');
+        element.className = `${this.class}`;
+        element.innerHTML = `${this.case(this.keyCode)}`;
+        element.setAttribute(`data-code`, `${this.keyCode}`);
+        return element;
     }
-    case(value) {
-        if (['Shift', 'Ctrl', 'Win', 'Alt', 'Left', 'Down', 'Rigth', 'Up', "Backspace", "Enter", 'Tab', 'Caps'].includes(keyData[value].symbolEn)) {
-            return keyData[value].symbolEn;
+    
+    case() {
+        if (['Shift', 'Ctrl', 'Win', 'Alt', 'Left', 'Down', 'Rigth', 'Up', 'Backspace', 'Enter', 'Tab', 'Caps'].includes(KEY_DATA[this.keyCode].symbolEn)) {
+            return KEY_DATA[this.keyCode].symbolEn;
+        } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(KEY_DATA[this.keyCode].symbolEn) && keyBoard.isShiftActive) {
+            const shiftCase = {'1' : '!', '2' : '@', '3' : '#', '4' : '$', '5' : '%', '6' : '^', '7' : '&', '8' : '*', '9' : '(', '0' : ')'};
+            return shiftCase[KEY_DATA[this.keyCode].symbolEn];
         } else {
-            let symbol = value;
-            symbol = keyBoard.isEn === true ? keyData[value].symbolEn : keyData[value].symbolRu;
+            let symbol = keyBoard.isEn === true ? KEY_DATA[this.keyCode].symbolEn : KEY_DATA[this.keyCode].symbolRu;
             symbol = keyBoard.isUpperCase === true ? symbol.toUpperCase() : symbol;
             return  symbol;
         };
